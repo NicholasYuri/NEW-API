@@ -18,6 +18,36 @@ app.get("/", (req, res) => {
   res.status(200).json({ msg: "Bem vindo a nossa API! " });
 });
 
+// Rota privada
+app.get("user/:id", checkToken, async (req, res) => {
+  const id = req.params.id;
+
+  const user = await User.findById(id, "-password"); // Busca no banco o user sem a senha
+
+  if (!user) {
+    return res.status(404).json({ msg: "Usuario não encontrado!" });
+  }
+
+  res.status(200).json({ user }); // retorna os dados do user encontrado
+});
+
+function checkToken(req, res, next) {
+  const authHeader = req.headers["Autorization"];
+  const token = authHeader && authHeader.splint(" ")[1];
+
+  if (!token) return res.status(401).json({ msg: "Acesso negado! " });
+
+  try {
+    const secret = process.env.SECRET;
+
+    jwt.verify(token, secret);
+
+    next();
+  } catch (err) {
+    res.status(400).json({ msg: "O token é inválido"});
+  }
+}
+
 // Criação de usuario
 app.post("/auth/register", async (req, res) => {
   const { name, email, password, confirmpassword } = req.body;
@@ -106,10 +136,6 @@ app.post("/auth/login", async (req, res) => {
     }
 });
 
-
-
-
-
 // Credenciais
 const dbUser = process.env.DB_USER;
 const dbPassword = process.env.DB_PASS;
@@ -123,3 +149,9 @@ mongoose
     console.log("Conectou ao Banco!");
   })
   .catch((err) => console.log(err));
+
+// DB_USER=adminY
+// DB_PASS=Br1fNvUtyVlMjrLT
+// SECRET=?BATATAFRITA$!?
+
+// colocar no .env
