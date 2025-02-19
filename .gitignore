@@ -1,2 +1,4 @@
 node_modules
 .env
+
+# .gitignore ele nao sobe os arquivos que estao aqui

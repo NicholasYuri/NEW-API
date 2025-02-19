@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
 });
 
 // Rota privada
-app.get("user/:id", checkToken, async (req, res) => {
+app.get("/user/:id", checkToken, async (req, res) => {
   const id = req.params.id;
 
   const user = await User.findById(id, "-password"); // Busca no banco o user sem a senha
@@ -71,10 +71,10 @@ app.post("/auth/register", async (req, res) => {
   }
 
 
-  const userExists = await User.findOne({ email: email });
+  const userExists = await User.findOne({ email: email }); // percorre o corpo todo User para ver se ja existe esse email 
 
   if (userExists) {
-    return res.status(422).json({ msg: "Por Favor, utilize outro email!" });
+    return res.status(422).json({ msg: "Por Favor, utilize outro email!" });  // se exister retorna esse resultado
   }
 
   const salt = await bcrypt.genSalt(12);  // Gera um salt para criptografar a senha 
@@ -83,11 +83,11 @@ app.post("/auth/register", async (req, res) => {
   const user = new User({
     name,
     email,
-    passwordHash,
+    password: passwordHash,
   });
 
   try {
-    await user.save();
+    await user.save(); // salva o usuario no banco de dados
 
     res.status(201).json({ msg: "Usuario criado com sucesso!" });
   } catch (error) {
@@ -97,43 +97,43 @@ app.post("/auth/register", async (req, res) => {
 });
 
 app.post("/auth/login", async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    if (!email) {
-        return res.status(422).json({ msg: "O email deve ser informado! "});
-    }
+  if (!email) {
+    return res.status(422).json({ msg: "O email deve ser informado!" });
+  }
 
-    if (!password) {
-        return res.status(422).json({ msg: "A senha deve ser informada! "});
-    }
+  if (!password) {
+    return res.status(422).json({ msg: "A senha deve ser informada!" });
+  }
 
-    const user = await user.findOne({ email: email}); // Busca o usuario no banco
+  const user = await User.findOne({ email: email }); // Busca o usuario no banco
 
-    if (!user) {
-        return res.status(404).json({ msg: "Usuario não encontrado!"});
-    }
+  if (!user) {
+    return res.status(404).json({ msg: "Usuário não encontrado! Por Favor faça o cadastro!" });
+  }
 
-    const checkPassword = await bcrypt.compare(password, user.password);
+  const checkPassword = await bcrypt.compare(password, user.password);
 
-    if (!checkPassword) {
-        return res.status(422).json({ msg: "Senha inválida, tente novamente. "});
-    }
+  if (!checkPassword) {
+    return res.status(422).json({ msg: "Senha Inválida, tente novamente." });
+  }
 
-    // Fazer um secret para evitar invasões
-    try {
-        const secret = process.env.SECRET;
+  // Fazer um env Secret para evitar invasões
+  try {
+    const secret = process.env.SECRET;
 
-        const token = jwt.sign(
-            {
-                id: user._id // cria o token JWT contendo o id do usuario
-            },
-            secret
-        );
+    const token = jwt.sign(
+      {
+        id: user._id, // Cria o token JWT contendo o ID do usuário
+      },
+      secret
+    );
 
-        res.status(200).json({ msg: "Autenticação realizada com sucesso!", token});
-    } catch (error) {
-        res.status(500).json({ msg: error }); // Somente se não gerar o token
-    }
+    res.status(200).json({ msg: "Autenticação realizada com sucesso!", token });
+  } catch (error) {
+    res.status(500).json({ msg: error }); // Somente se não gerar o Token
+  }
 });
 
 // Credenciais
