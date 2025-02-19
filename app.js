@@ -25,15 +25,15 @@ app.get("/user/:id", checkToken, async (req, res) => {
   const user = await User.findById(id, "-password"); // Busca no banco o user sem a senha
 
   if (!user) {
-    return res.status(404).json({ msg: "Usuario não encontrado!" });
+    return res.status(404).json({ msg: "Usuário não encontrado!" });
   }
 
-  res.status(200).json({ user }); // retorna os dados do user encontrado
+  res.status(200).json({ user }); // Retorna os dados do user encontrado
 });
 
 function checkToken(req, res, next) {
-  const authHeader = req.headers["Autorization"];
-  const token = authHeader && authHeader.splint(" ")[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) return res.status(401).json({ msg: "Acesso negado! " });
 
@@ -44,7 +44,7 @@ function checkToken(req, res, next) {
 
     next();
   } catch (err) {
-    res.status(400).json({ msg: "O token é inválido"});
+    res.status(400).json({ msg: "O token é inválido!" });
   }
 }
 
